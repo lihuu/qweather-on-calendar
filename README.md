@@ -116,6 +116,8 @@ pnpm wrangler secret put QWEATHER_PRIVATE_KEY
 - `QWEATHER_API_HOST`：和风天气天气 API Host，例如 `https://api.qweather.com`
 - `GEO_API_HOST`：和风天气 Geo API Host，例如 `https://geoapi.qweather.com`
 
+> 这里的api host可以在这里查看，每个开发者都是不一样的 https://console.qweather.com/setting
+
 #### 可选环境变量（vars）
 
 - `RATE_LIMIT_PER_SECOND`：每 IP 每秒请求数上限，默认 `1`
