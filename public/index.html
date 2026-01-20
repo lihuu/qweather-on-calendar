@@ -36,14 +36,18 @@
             <!-- 结果区域 -->
             <div id="result" class="hidden animate-fade-in-up">
                 <div class="bg-gray-100 p-4 rounded-lg break-all text-sm font-mono text-gray-600 mb-3" id="urlDisplay">
-                    https://...
+                    webcals://...
                 </div>
+                <button onclick="subscribeCalendar()"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition mb-2">
+                    订阅日历
+                </button>
                 <button onclick="copyLink()"
                     class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 rounded-lg transition">
                     复制链接
                 </button>
                 <div class="mt-4 text-xs text-gray-400 text-center">
-                    <p>提示：iPhone 用户点击上方链接可直接订阅</p>
+                    <p>提示：点击「订阅日历」会打开日历应用，或复制链接到日历 App 中添加订阅</p>
                 </div>
             </div>
         </div>
@@ -63,28 +67,38 @@
 
             // 获取当前协议和域名 (自动适配 workers.dev 或自定义域名)
             const origin = window.location.origin;
-            // 构建 webcal 协议链接 (iOS 可直接打开)
-            // 如果是 https，通常在日历中建议使用 https 协议，但 webcal 协议能触发 iOS 自动弹窗
-            // 为了通用性，我们展示 https 链接，但在复制逻辑里可以做优化
             const fullUrl = `${origin}/calendar?city=${encodeURIComponent(city)}`;
 
-            // 为了让 iPhone 点击直接跳转订阅，可以将 https:// 替换为 webcal://
-            // 但 Cloudflare Worker 必须运行在 https 上
-            const displayUrl = fullUrl.replace(/^https:\/\//, 'webcal://');
+            // 转换为 webcal(s) 协议
+            // https -> webcals (加密订阅)
+            // http -> webcal (非加密订阅)
+            const webcalUrl = fullUrl
+                .replace(/^https:\/\//, 'webcals://')
+                .replace(/^http:\/\//, 'webcal://');
 
             const resultDiv = document.getElementById('result');
             const urlDisplay = document.getElementById('urlDisplay');
 
-            urlDisplay.textContent = fullUrl;
-            urlDisplay.dataset.copyUrl = fullUrl; // 存储原始 https 链接用于复制
+            // 显示 webcal(s) 链接
+            urlDisplay.textContent = webcalUrl;
+            urlDisplay.dataset.copyUrl = webcalUrl;
+            urlDisplay.dataset.subscribeUrl = webcalUrl;
 
             resultDiv.classList.remove('hidden');
+        }
+
+        function subscribeCalendar() {
+            const url = document.getElementById('urlDisplay').dataset.subscribeUrl;
+            if (url) {
+                // 直接打开 webcal(s) 链接，系统会自动调用默认日历应用
+                window.location.href = url;
+            }
         }
 
         function copyLink() {
             const url = document.getElementById('urlDisplay').dataset.copyUrl;
             navigator.clipboard.writeText(url).then(() => {
-                alert('链接已复制！请前往日历 App 添加订阅。');
+                alert('链接已复制！请在日历 App 中添加订阅。');
             }).catch(err => {
                 console.error('Failed to copy: ', err);
             });

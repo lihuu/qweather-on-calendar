@@ -73,7 +73,20 @@ pnpm wrangler kv namespace create WEATHER_KV
 - `QWEATHER_PROJECT_ID`：和风天气项目 ID（sub）
 - `QWEATHER_PRIVATE_KEY`：Ed25519 私钥（PEM 格式）
 
-设置方式：
+**推荐方式：使用配置脚本（自动化）**
+
+```bash
+# 运行交互式脚本，自动配置所有 Secrets
+./setup-secrets.sh
+```
+
+脚本会引导你：
+
+1. 输入 QWEATHER_KEY_ID
+2. 输入 QWEATHER_PROJECT_ID
+3. 输入 QWEATHER_PRIVATE_KEY（支持多行粘贴）
+
+**或者：手动设置**
 
 ```bash
 pnpm wrangler secret put QWEATHER_KEY_ID
