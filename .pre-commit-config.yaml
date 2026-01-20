@@ -1,0 +1,9 @@
+repos:
+  - repo: https://github.com/GitGuardian/ggshield
+    rev: v1.36.0
+    hooks:
+      - id: ggshield
+        name: ggshield secret scan (staged)
+        entry: ggshield secret scan pre-commit
+        language: python
+        pass_filenames: false
