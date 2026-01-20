@@ -67,8 +67,8 @@ async function handleCalendarRequest(request: Request, env: Env): Promise<Respon
   if (currentRate && parseInt(currentRate) >= limitPerSecond) {
     return new Response('Too Many Requests. Please slow down.', { status: 429 });
   }
-  // 记录请求（过期时间设为2秒，节省空间）
-  await env.WEATHER_KV.put(rateKey, (parseInt(currentRate || '0') + 1).toString(), { expirationTtl: 2 });
+  // 记录请求（KV 最小 TTL 为 60 秒）
+  await env.WEATHER_KV.put(rateKey, (parseInt(currentRate || '0') + 1).toString(), { expirationTtl: 60 });
 
 
   // --- B. 总配额检查 (Quota Management) ---
