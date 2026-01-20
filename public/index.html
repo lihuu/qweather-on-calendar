@@ -36,7 +36,7 @@
             <!-- 结果区域 -->
             <div id="result" class="hidden animate-fade-in-up">
                 <div class="bg-gray-100 p-4 rounded-lg break-all text-sm font-mono text-gray-600 mb-3" id="urlDisplay">
-                    webcals://...
+                    webcal://...
                 </div>
                 <button onclick="subscribeCalendar()"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition mb-2">
@@ -69,17 +69,17 @@
             const origin = window.location.origin;
             const fullUrl = `${origin}/calendar?city=${encodeURIComponent(city)}`;
 
-            // 转换为 webcal(s) 协议
-            // https -> webcals (加密订阅)
-            // http -> webcal (非加密订阅)
+            // 转换为 webcal:// 协议（Apple Calendar 支持）
+            // https -> webcal://
+            // http -> webcal://
             const webcalUrl = fullUrl
-                .replace(/^https:\/\//, 'webcals://')
+                .replace(/^https:\/\//, 'webcal://')
                 .replace(/^http:\/\//, 'webcal://');
 
             const resultDiv = document.getElementById('result');
             const urlDisplay = document.getElementById('urlDisplay');
 
-            // 显示 webcal(s) 链接
+            // 显示 webcal:// 链接
             urlDisplay.textContent = webcalUrl;
             urlDisplay.dataset.copyUrl = webcalUrl;
             urlDisplay.dataset.subscribeUrl = webcalUrl;
@@ -90,7 +90,8 @@
         function subscribeCalendar() {
             const url = document.getElementById('urlDisplay').dataset.subscribeUrl;
             if (url) {
-                // 直接打开 webcal(s) 链接，系统会自动调用默认日历应用
+                // 打开 webcal:// 链接
+                // 系统会自动弹出选择要打开的日历应用（Apple Calendar、Google Calendar、Outlook 等）
                 window.location.href = url;
             }
         }

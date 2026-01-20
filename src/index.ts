@@ -68,7 +68,7 @@ async function handleCalendarRequest(request: Request, env: Env): Promise<Respon
     return new Response('Too Many Requests. Please slow down.', { status: 429 });
   }
   // 记录请求（过期时间设为2秒，节省空间）
-  await env.WEATHER_KV.put(rateKey, (parseInt(currentRate || '0') + 1).toString(), { expirationTtl: 60 });
+  await env.WEATHER_KV.put(rateKey, (parseInt(currentRate || '0') + 1).toString(), { expirationTtl: 2 });
 
 
   // --- B. 总配额检查 (Quota Management) ---
@@ -83,17 +83,16 @@ async function handleCalendarRequest(request: Request, env: Env): Promise<Respon
   }
 
   try {
+    // 先占用配额，避免上游失败导致的无限重试
+    const reservedCount = parseInt(currentQuota || '0') + 1;
+    await env.WEATHER_KV.put(quotaKey, reservedCount.toString(), { expirationTtl: 86400 * 2 }); // 保留2天
+
     // --- C. 核心业务逻辑 ---
     // 1. 获取天气数据
     const weatherData = await handleWeatherRequest(city, env);
     
     // 2. 生成 ICS
     const icsContent = generateICS(weatherData, city);
-
-    // 3. 增加配额计数 (成功调用后才增加)
-    // 注意：KV 并非强一致性原子计数，但在非金融场景下误差可接受
-    const newCount = parseInt(currentQuota || '0') + 1;
-    await env.WEATHER_KV.put(quotaKey, newCount.toString(), { expirationTtl: 86400 * 2 }); // 保留2天
 
     return new Response(icsContent, {
       headers: {
