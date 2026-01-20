@@ -17,9 +17,14 @@ import { generateICS } from './ics';
 export interface Env {
   ASSETS: Fetcher;
   WEATHER_KV: KVNamespace;
-  QWEATHER_API_KEY: string;
+  // JWT 认证参数
+  QWEATHER_KEY_ID: string;
+  QWEATHER_PROJECT_ID: string;
+  QWEATHER_PRIVATE_KEY: string;
+  // API 配置
   QWEATHER_API_HOST: string;
   GEO_API_HOST: string;
+  // 限流配置
   RATE_LIMIT_PER_SECOND: string;
   DAILY_QUOTA_LIMIT: string;
 }
