@@ -91,8 +91,8 @@ export function generateICS(forecasts: any[], cityName: string): string {
 
     const emoji = ICON_MAP[day.iconDay] || ICON_MAP['default'];
 
-    // 标题: ☀️ 晴 25° / 15°
-    const summary = `${emoji} ${day.textDay} ${day.tempMax}° / ${day.tempMin}°`;
+    // 标题包含城市信息: ☀️ 南京: 晴 25° / 15°
+    const summary = `${emoji} ${cityName}: ${day.textDay} ${day.tempMax}° / ${day.tempMin}°`;
 
     // 更多指标：湿度、气压、风向风力（白天/夜间）
     const humidity = day.humidity ?? day.hum ?? '—';
