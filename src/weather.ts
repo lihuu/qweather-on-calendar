@@ -12,6 +12,8 @@ interface WeatherForecast {
 export interface WeatherNowData {
   weather: string;
   temperature: string;
+  temperatureRange: string;
+  relativeHumidity: string;
   windDirection: string;
   dressingIndex: string | null;
 }
@@ -198,6 +200,8 @@ export async function handleWeatherNowRequest(cityKeyword: string, env: Env): Pr
   return {
     weather: nowData.now.text,
     temperature: nowData.now.temp,
+    temperatureRange: '未知/未知°C',
+    relativeHumidity: '未知',
     windDirection: nowData.now.windDir,
     dressingIndex,
   };

@@ -78,6 +78,8 @@ const SKILL_MD_CONTENT = `# Weather API Skill
   "weather": {
     "weather": "晴",
     "temperature": "28",
+    "temperatureRange": "未知/未知°C",
+    "relativeHumidity": "未知",
     "windDirection": "东南风",
     "dressingIndex": "舒适"
   },
@@ -90,6 +92,8 @@ const SKILL_MD_CONTENT = `# Weather API Skill
 - city: string
 - weather.weather: string
 - weather.temperature: string
+- weather.temperatureRange: string
+- weather.relativeHumidity: string
 - weather.windDirection: string
 - weather.dressingIndex: string | null
 - source: string
