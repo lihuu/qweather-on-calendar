@@ -9,6 +9,13 @@ interface WeatherForecast {
   precip: string; // 降水量
 }
 
+export interface WeatherNowData {
+  weather: string;
+  temperature: string;
+  windDirection: string;
+  dressingIndex: string | null;
+}
+
 /**
  * 生成和风天气 JWT Token
  * https://dev.qweather.com/docs/configuration/authentication/#json-web-token
@@ -133,4 +140,65 @@ export async function handleWeatherRequest(cityKeyword: string, env: Env): Promi
   }
 
   return weatherData.daily;
+}
+
+export async function handleWeatherNowRequest(cityKeyword: string, env: Env): Promise<WeatherNowData> {
+  const token = await generateQWeatherJWT(env);
+
+  // 1. 城市查询
+  const geoParams = new URLSearchParams({
+    location: cityKeyword,
+    number: '1',
+  });
+  const geoUrl = `${env.GEO_API_HOST}/geo/v2/city/lookup?${geoParams.toString()}`;
+  const geoResp = await fetch(geoUrl, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!geoResp.ok) {
+    throw new Error(`GeoAPI request failed with status ${geoResp.status}`);
+  }
+  const geoData: any = await geoResp.json();
+  if (geoData.code !== '200' || !geoData.location || geoData.location.length === 0) {
+    throw new Error(`City "${cityKeyword}" not found.`);
+  }
+  const locationId = geoData.location[0].id;
+
+  // 2. 实时天气
+  const nowUrl = `${env.QWEATHER_API_HOST}/v7/weather/now?location=${locationId}`;
+  const nowResp = await fetch(nowUrl, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!nowResp.ok) {
+    throw new Error(`Now weather request failed with status ${nowResp.status}`);
+  }
+  const nowData: any = await nowResp.json();
+  if (nowData.code !== '200' || !nowData.now) {
+    throw new Error(`Now weather API Error: ${nowData.code}`);
+  }
+
+  // 3. 穿衣指数（type=3）
+  let dressingIndex: string | null = null;
+  const indexUrl = `${env.QWEATHER_API_HOST}/v7/indices/1d?type=3&location=${locationId}`;
+  const indexResp = await fetch(indexUrl, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (indexResp.ok) {
+    const indexData: any = await indexResp.json();
+    if (indexData.code === '200' && indexData.daily && indexData.daily.length > 0) {
+      dressingIndex = indexData.daily[0].category || indexData.daily[0].text || null;
+    }
+  }
+
+  return {
+    weather: nowData.now.text,
+    temperature: nowData.now.temp,
+    windDirection: nowData.now.windDir,
+    dressingIndex,
+  };
 }
