@@ -167,20 +167,21 @@ export async function handleWeatherNowRequest(cityKeyword: string, env: Env): Pr
   }
   const locationId = geoData.location[0].id;
 
-  // 2. 实时天气
-  const nowUrl = `${env.QWEATHER_API_HOST}/v7/weather/now?location=${locationId}`;
-  const nowResp = await fetch(nowUrl, {
+  // 2. 3天天气预报，取第一条作为当前展示数据
+  const forecastUrl = `${env.QWEATHER_API_HOST}/v7/weather/3d?location=${locationId}`;
+  const forecastResp = await fetch(forecastUrl, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
   });
-  if (!nowResp.ok) {
-    throw new Error(`Now weather request failed with status ${nowResp.status}`);
+  if (!forecastResp.ok) {
+    throw new Error(`Forecast weather request failed with status ${forecastResp.status}`);
   }
-  const nowData: any = await nowResp.json();
-  if (nowData.code !== '200' || !nowData.now) {
-    throw new Error(`Now weather API Error: ${nowData.code}`);
+  const forecastData: any = await forecastResp.json();
+  if (forecastData.code !== '200' || !forecastData.daily || forecastData.daily.length === 0) {
+    throw new Error(`Forecast weather API Error: ${forecastData.code}`);
   }
+  const firstDay = forecastData.daily[0];
 
   // 3. 穿衣指数（type=3）
   let dressingIndex: string | null = null;
@@ -197,12 +198,19 @@ export async function handleWeatherNowRequest(cityKeyword: string, env: Env): Pr
     }
   }
 
+  // temperature 字段保持单值，用最高最低的平均值
+  const minTemp = Number(firstDay.tempMin);
+  const maxTemp = Number(firstDay.tempMax);
+  const avgTemp = Number.isFinite(minTemp) && Number.isFinite(maxTemp)
+    ? Math.round((minTemp + maxTemp) / 2).toString()
+    : firstDay.tempMax;
+
   return {
-    weather: nowData.now.text,
-    temperature: nowData.now.temp,
-    temperatureRange: '未知/未知°C',
-    relativeHumidity: '未知',
-    windDirection: nowData.now.windDir,
+    weather: firstDay.textDay,
+    temperature: avgTemp,
+    temperatureRange: `${firstDay.tempMin}/${firstDay.tempMax}°C`,
+    relativeHumidity: firstDay.humidity,
+    windDirection: firstDay.windDirDay || firstDay.windDirNight || '',
     dressingIndex,
   };
 }
